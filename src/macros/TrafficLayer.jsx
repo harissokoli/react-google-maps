@@ -1,74 +1,54 @@
-/* global google */
-import React from "react"
+import React, { useEffect, useContext } from "react"
 import PropTypes from "prop-types"
-
 import {
   construct,
   componentDidMount,
   componentDidUpdate,
   componentWillUnmount,
 } from "../utils/MapChildHelper"
-
 import { MAP, TRAFFIC_LAYER } from "../constants"
 
-export const __jscodeshiftPlaceholder__ = `{
-  "eventMapOverrides": {
-  },
-  "getInstanceFromComponent": "this.state[TRAFFIC_LAYER]"
-}`
+const TrafficLayer = props => {
+  const mapContext = useContext(MAP)
+  const trafficLayerRef = React.useRef(null)
 
-/**
- * A wrapper around `google.maps.TrafficLayer`
- *
- * @see https://developers.google.com/maps/documentation/javascript/3.exp/reference#TrafficLayer
- */
-export class TrafficLayer extends React.PureComponent {
-  static propTypes = {
-    __jscodeshiftPlaceholder__: null,
-  }
+  useEffect(
+    () => {
+      const trafficLayer = new google.maps.TrafficLayer()
+      construct(TrafficLayer.propTypes, updaterMap, props, trafficLayer)
+      trafficLayer.setMap(mapContext)
+      trafficLayerRef.current = trafficLayer
 
-  static contextTypes = {
-    [MAP]: PropTypes.object,
-  }
+      componentDidMount(TrafficLayer, trafficLayerRef.current, eventMap)
 
-  /*
-   * @see https://developers.google.com/maps/documentation/javascript/3.exp/reference#TrafficLayer
-   */
-  constructor(props, context) {
-    super(props, context)
-    const trafficLayer = new google.maps.TrafficLayer()
-    construct(TrafficLayer.propTypes, updaterMap, this.props, trafficLayer)
-    trafficLayer.setMap(this.context[MAP])
-    this.state = {
-      [TRAFFIC_LAYER]: trafficLayer,
-    }
-  }
+      return () => {
+        componentWillUnmount(TrafficLayer)
+        if (trafficLayerRef.current) {
+          trafficLayerRef.current.setMap(null)
+        }
+      }
+    },
+    [mapContext, props]
+  )
 
-  componentDidMount() {
-    componentDidMount(this, this.state[TRAFFIC_LAYER], eventMap)
-  }
+  useEffect(
+    () => {
+      componentDidUpdate(
+        TrafficLayer,
+        trafficLayerRef.current,
+        eventMap,
+        updaterMap,
+        props
+      )
+    },
+    [props]
+  )
 
-  componentDidUpdate(prevProps) {
-    componentDidUpdate(
-      this,
-      this.state[TRAFFIC_LAYER],
-      eventMap,
-      updaterMap,
-      prevProps
-    )
-  }
+  return false
+}
 
-  componentWillUnmount() {
-    componentWillUnmount(this)
-    const trafficLayer = this.state[TRAFFIC_LAYER]
-    if (trafficLayer) {
-      trafficLayer.setMap(null)
-    }
-  }
-
-  render() {
-    return false
-  }
+TrafficLayer.propTypes = {
+  __jscodeshiftPlaceholder__: null,
 }
 
 export default TrafficLayer
